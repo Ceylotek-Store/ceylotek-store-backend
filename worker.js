@@ -38,20 +38,41 @@ const processOrder = async (data) => {
 };
 
 const startWorker = async () => {
-    const connection = await amqp.connect('amqp://ceylotek:ceylotek26@localhost:5672');
-    const channel = await connection.createChannel();
-    const queue = 'ORDER_QUEUE';
-
-    await channel.assertQueue(queue);
-    console.log("👷 Worker waiting for orders...");
-
-    channel.consume(queue, async (msg) => {
-        if (msg !== null) {
-            const data = JSON.parse(msg.content.toString());
-            await processOrder(data);
-            channel.ack(msg);
+    try {
+        const rabbitUrl = process.env.RABBITMQ_URL;
+        
+        if (!rabbitUrl) {
+            throw new Error("RABBITMQ_URL is missing in .env file");
         }
-    });
+
+        console.log(`🔌 Connecting to RabbitMQ...`); // Good for debugging connection issues
+        
+        const connection = await amqp.connect(rabbitUrl);
+        const channel = await connection.createChannel();
+        const queue = 'ORDER_QUEUE';
+
+        await channel.assertQueue(queue);
+        console.log("👷 Worker waiting for orders...");
+
+        channel.consume(queue, async (msg) => {
+            if (msg !== null) {
+                const data = JSON.parse(msg.content.toString());
+                await processOrder(data);
+                channel.ack(msg);
+            }
+        });
+
+        // Handle connection close
+        connection.on('close', () => {
+            console.error('RabbitMQ connection closed. Exiting...');
+            process.exit(1); // PM2 will restart it
+        });
+
+    } catch (error) {
+        console.error("Worker Error:", error.message);
+        // Retry logic or exit so PM2 can restart
+        setTimeout(() => process.exit(1), 5000);
+    }
 };
 
 startWorker();
