@@ -16,10 +16,18 @@ const login = async (req, res) => {
         const { user, accessToken, refreshToken } = await authService.loginUser(email, password);
 
         // Set HttpOnly Cookie
+        // res.cookie('jwt', refreshToken, {
+        //     httpOnly: true, // JS cannot read this (Security)
+        //     secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+        //     sameSite: 'strict', // Protects against CSRF
+        //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        // });
         res.cookie('jwt', refreshToken, {
-            httpOnly: true, // JS cannot read this (Security)
-            secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-            sameSite: 'strict', // Protects against CSRF
+            httpOnly: true,
+            // Force false because Vagrant uses HTTP, even if NODE_ENV is production
+            secure: false,
+            // 'Lax' allows the cookie to survive some redirects/navigations better than 'Strict' in dev
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -39,11 +47,19 @@ const refresh = async (req, res) => {
         const { accessToken, refreshToken } = await authService.refreshAccessToken(cookies.jwt);
 
         // Send new cookie
+        // res.cookie('jwt', refreshToken, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 7 * 24 * 60 * 60 * 1000
+        // });
         res.cookie('jwt', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            // Force false because Vagrant uses HTTP, even if NODE_ENV is production
+            secure: false,
+            // 'Lax' allows the cookie to survive some redirects/navigations better than 'Strict' in dev
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.json({ accessToken });
