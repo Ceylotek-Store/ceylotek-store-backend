@@ -3,8 +3,9 @@ const amqp = require('amqplib');
 let channel = null;
 
 const connectRabbitMQ = async () => {
+    const rabbitUrl = process.env.RABBITMQ_URL;
     try {
-        const connection = await amqp.connect('amqp://ceylotek:ceylotek26@localhost:5672');
+        const connection = await amqp.connect(rabbitUrl);
         channel = await connection.createChannel();
         await channel.assertQueue('ORDER_QUEUE');
         console.log("🐰 Connected to RabbitMQ");
