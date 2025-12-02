@@ -1,0 +1,40 @@
+name: ceylotek_ecommerce_app
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ceylotek_ecommerce_db
+    restart: always
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ceylotek26
+      POSTGRES_DB: ceylotek_ecommerce_store
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    container_name: ceylotek_redis
+    ports:
+      - "6379:6379" # <--- CRITICAL: Exposes Redis to localhost
+    # No volumes needed for Redis in dev usually (it's okay if cache clears on restart)
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ceylotek_rabbitmq
+    ports:
+      # Port for your Backend to connect (Messaging)
+      - "5672:5672"
+      # Port for YOU to see the Dashboard (UI)
+      - "15672:15672"
+    environment:
+      # Default user/pass is guest/guest, but good to be explicit
+      RABBITMQ_DEFAULT_USER: ceylotek
+      RABBITMQ_DEFAULT_PASS: ceylotek26
+
+volumes:
+  postgres_data:

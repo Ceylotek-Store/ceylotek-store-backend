@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Define the Roles
+enum Role {
+  CUSTOMER
+  DEVELOPER
+  SHOP_OWNER
+}
+
+// 2. Update User Model
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String // Hashed password
+  name         String?
+  role         Role     @default(CUSTOMER) // Default role is Customer
+  createdAt    DateTime @default(now())
+  refreshToken String?
+  orders       Order[]
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  price       Decimal     @db.Decimal(10, 2)
+  stock       Int
+  category    String // e.g., "HEADSET", "LAPTOP"
+  imageUrl    String? // <--- The path to the image (e.g., "/uploads/mouse.jpg")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime? // Optional. Null means active.
+  orderItems  OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Order {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  totalAmount Decimal     @db.Decimal(10, 2) // Calculated on backend
+  status      OrderStatus @default(PENDING)
+
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(PENDING)
+
+  shippingAddress String
+  contactPhone    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity Int
+  price    Decimal @db.Decimal(10, 2) // SNAPSHOT price at time of purchase
+}

@@ -1,0 +1,22 @@
+node_modules
+# Keep environment variables out of version control
+.env
+.env.production
+.env.local
+.env.test
+
+/generated/prisma
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+.vagrant/
+
+dist/
+build/
+coverage/
+
+*.sqlite
+*.sqlite-journal
