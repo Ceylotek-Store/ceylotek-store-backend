@@ -18,7 +18,11 @@ const app = express();
 
 // 2. Middleware Configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
+  // Allow BOTH localhost (for dev) AND the Frontend VM IP (for prod)
+  origin: [
+    'http://localhost:3000', 
+    'http://192.168.56.30:3000' 
+  ],
   credentials: true
 }));
 
