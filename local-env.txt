@@ -1,0 +1,27 @@
+PORT=5000
+NODE_ENV=production
+
+# Database (Postgres VM .10)
+DATABASE_URL="postgresql://admin:password123@192.168.56.10:5432/ecommerce_store?schema=public"
+
+# Redis (Redis VM .12)
+REDIS_URL="redis://:password123@192.168.56.12:6379"
+
+# RabbitMQ (RabbitMQ VM .11)
+RABBITMQ_URL="amqp://admin:password123@192.168.56.11:5672"
+
+# Security
+JWT_SECRET="0bb9329078266d0e9b0e310f23119b5ec41744b792bc91b80b395983cbd8fcc4"
+
+# Email Service (Mailpit on .50)
+SMTP_HOST=192.168.56.50
+SMTP_PORT=1025
+SMTP_USER=null
+SMTP_PASS=null
+EMAIL_FROM=noreply@ceylotek.com
+
+# ----------------------------------------
+# STORAGE CONFIGURATION (NEW)
+# ----------------------------------------
+# Options: 'local' (for Vagrant/Dev) OR 's3' (for AWS/Prod)
+STORAGE_TYPE=local

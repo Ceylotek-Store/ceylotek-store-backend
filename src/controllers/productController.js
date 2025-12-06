@@ -1,11 +1,34 @@
 const productService = require('../services/productService');
 
+// --- HELPER: Extract Image URL based on Storage Type ---
+// This handles both Local (filename) and S3 (location) automatically
+const getImageUrl = (file) => {
+  if (!file) return null;
+
+  // Case 1: S3 Upload (Multer-S3 adds 'location')
+  // Example: https://my-bucket.s3.amazonaws.com/products/sony-headset.jpg
+  if (file.location) {
+    return file.location;
+  }
+
+  // Case 2: Local Upload (Multer-Disk adds 'filename')
+  // Example: /uploads/product-12345.jpg
+  if (file.filename) {
+    return `/uploads/${file.filename}`;
+  }
+
+  return null;
+};
+
 // 1. Create Product
 const createProduct = async (req, res) => {
   console.log('----------------------------------------------------');
   console.log('[CONTROLLER] createProduct called');
   console.log('[CONTROLLER] Request Body:', req.body);
-  if (req.file) console.log('[CONTROLLER] File attached:', req.file.filename);
+  
+  if (req.file) {
+    console.log('[CONTROLLER] File attached (Multer):', req.file);
+  }
 
   try {
     const productData = {
@@ -14,7 +37,8 @@ const createProduct = async (req, res) => {
       price: parseFloat(req.body.price),
       stock: parseInt(req.body.stock),
       category: req.body.category,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : null
+      // LOGIC CHANGE: Use the helper to get the correct string
+      imageUrl: getImageUrl(req.file) 
     };
 
     const newProduct = await productService.createProduct(productData);
@@ -33,13 +57,9 @@ const getAllProducts = async (req, res) => {
   console.log('[CONTROLLER] getAllProducts called');
 
   try {
-    // 1. EXTRACT BOTH PARAMS
-    // Example URL: /products?category=HEADPHONE&search=Sony
     const { category, search } = req.query; 
-
     console.log(`[CONTROLLER] Filters - Category: ${category || 'NONE'}, Search: ${search || 'NONE'}`);
 
-    // 2. PASS BOTH TO SERVICE
     const products = await productService.getAllProducts(category, search);
     
     console.log(`[CONTROLLER] Sending ${products.length} products to client`);
@@ -80,17 +100,16 @@ const updateProduct = async (req, res) => {
   console.log('[CONTROLLER] Update Payload:', req.body);
 
   try {
-    // A. Start with the text fields from the body
     const productData = { ...req.body };
 
-    // B. Handle Numbers
     if (productData.price) productData.price = parseFloat(productData.price);
     if (productData.stock) productData.stock = parseInt(productData.stock);
 
-    // C. Handle Image
+    // LOGIC CHANGE: Handle S3 or Local image update
     if (req.file) {
-      console.log(`[CONTROLLER] New image uploaded: ${req.file.filename}`);
-      productData.imageUrl = `/uploads/${req.file.filename}`;
+      console.log(`[CONTROLLER] New image uploaded.`);
+      // The helper decides if it's a full URL (S3) or relative path (Local)
+      productData.imageUrl = getImageUrl(req.file);
     }
 
     const updatedProduct = await productService.updateProduct(id, productData);
