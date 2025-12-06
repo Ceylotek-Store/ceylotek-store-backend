@@ -21,7 +21,10 @@ app.use(cors({
   // Allow BOTH localhost (for dev) AND the Frontend VM IP (for prod)
   origin: [
     'http://localhost:3000', 
-    'http://192.168.56.30:3000' 
+    'http://192.168.56.30:3000',
+    '172.31.26.43:3000', 
+    'http://192.168.56.40', // Add Gateway IP too just in case
+    'http://frontend01.ceylotek.internal:3000' // Internal DNS name
   ],
   credentials: true
 }));
