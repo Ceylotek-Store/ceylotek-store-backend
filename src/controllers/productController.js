@@ -1,18 +1,18 @@
 const productService = require('../services/productService');
 
 // --- HELPER: Extract Image URL based on Storage Type ---
-// This handles both Local (filename) and S3 (location) automatically
+// This makes your code compatible with BOTH Local and S3 storage
 const getImageUrl = (file) => {
   if (!file) return null;
 
-  // Case 1: S3 Upload (Multer-S3 adds 'location')
-  // Example: https://my-bucket.s3.amazonaws.com/products/sony-headset.jpg
+  // Case 1: S3 Upload (Multer-S3 provides 'location')
+  // Example: https://ceylotek-bucket.s3.us-east-1.amazonaws.com/products/image.jpg
   if (file.location) {
     return file.location;
   }
 
-  // Case 2: Local Upload (Multer-Disk adds 'filename')
-  // Example: /uploads/product-12345.jpg
+  // Case 2: Local Upload (Multer-Disk provides 'filename')
+  // Example: /uploads/image-12345.jpg
   if (file.filename) {
     return `/uploads/${file.filename}`;
   }
@@ -37,7 +37,7 @@ const createProduct = async (req, res) => {
       price: parseFloat(req.body.price),
       stock: parseInt(req.body.stock),
       category: req.body.category,
-      // LOGIC CHANGE: Use the helper to get the correct string
+      // CHANGE: Use helper to determine if it's S3 URL or Local Path
       imageUrl: getImageUrl(req.file) 
     };
 
@@ -105,10 +105,10 @@ const updateProduct = async (req, res) => {
     if (productData.price) productData.price = parseFloat(productData.price);
     if (productData.stock) productData.stock = parseInt(productData.stock);
 
-    // LOGIC CHANGE: Handle S3 or Local image update
+    // CHANGE: Handle Image Update
     if (req.file) {
       console.log(`[CONTROLLER] New image uploaded.`);
-      // The helper decides if it's a full URL (S3) or relative path (Local)
+      // Use helper to get the new URL (S3 or Local)
       productData.imageUrl = getImageUrl(req.file);
     }
 

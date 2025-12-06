@@ -15,7 +15,7 @@ const getImageUrl = (filename) => {
         }
         
         // AWS S3 Virtual-Hosted-Style URL
-        return `https://${bucket}.s3.${region}.amazonaws.com/products/${filename}`;
+        return `https://${bucket}.s3.${region}.amazonaws.com/${filename}`;
     }
     
     // Default: Local Storage
